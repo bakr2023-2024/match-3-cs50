@@ -1,6 +1,5 @@
 Class = require("lib.class")
 push = require("lib.push")
-Timer = require("lib.knife.timer")
 
 WW, WH = 1280, 720
 VW, VH = 512, 288

@@ -11,6 +11,9 @@ function love.load()
 		["start"] = function()
 			return StartState()
 		end,
+		['beginGame'] = function ()
+		return BeginGameState()
+		end,
 		["play"] = function()
 			return PlayState()
 		end,
