@@ -7,6 +7,16 @@ VW, VH = 512, 288
 HVW, HVH = VW / 2, VH / 2
 BACKGROUND_SCROLL = 80
 
+require("src.Tile")
+require("src.Board")
+
+require("src.states.BaseState")
+require("src.states.StartState")
+require("src.states.BeginGameState")
+require("src.states.PlayState")
+require("src.states.GameOverState")
+require("src.StateMachine")
+
 require("src.Utils")
 
 sounds = {
@@ -20,12 +30,12 @@ sounds = {
 }
 
 textures = {
-	["main"] = love.graphics.newImage("graphics/match3.png"),
+	["tiles"] = love.graphics.newImage("graphics/match3.png"),
 	["background"] = love.graphics.newImage("graphics/background.png"),
 }
 
 frames = {
-	["tiles"] = GenerateQuads(textures["main"], 32, 32),
+	["tiles"] = GenerateQuads(textures["tiles"]),
 }
 
 fonts = {
