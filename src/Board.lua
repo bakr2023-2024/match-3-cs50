@@ -4,6 +4,7 @@ function Board:init(x, y)
 	self.x = x
 	self.y = y
 	self.matches = {}
+	self:initTiles()
 end
 
 function Board:initTiles()

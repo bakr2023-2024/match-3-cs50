@@ -1,6 +1,7 @@
 BeginGameState = Class({ __includes = BaseState })
 
 function BeginGameState:init()
+	self.board = Board(HVW - 16, 16)
 	self.timer = require("lib.knife.timer")
 	self.transAlpha = 1
 	self.y = -60
@@ -13,7 +14,7 @@ function BeginGameState:enter(params)
 		self.timer.tween(0.25, { [self] = { y = HVH - 60 } }):finish(function()
 			self.timer.after(1, function()
 				self.timer.tween(0.25, { [self] = { y = VH + 60 } }):finish(function()
-					gsm:change("play", { level = self.level, score = self.score })
+					gsm:change("play", { level = self.level, score = self.score, board = self.board })
 				end)
 			end)
 		end)
