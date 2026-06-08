@@ -5,8 +5,7 @@ function StartState:init()
 	self.currOption = 1
 	self.canInput = true
 	self.transAlpha = 0
-	self.board = Board(HVW - 4 * 32, HVH - 4 * 32)
-	self.board:initTiles()
+	self.board = Board(HVW - 4 * 32, HVH - 4 * 32, 2)
 end
 
 function StartState:enter(params) end

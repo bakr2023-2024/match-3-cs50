@@ -5,9 +5,10 @@ function Board:init(x, y, level)
 	self.y = y
 	self.matches = {}
 	self.colors = {}
+	self.level = level
 	repeat
 		self:initTiles(level)
-	until #(self:getMatches()) == 0 and self:hasPotentialMatch()
+	until #(self:getMatches()) == 0 and self:hasPotentialMatch() -- guarantees that board will have at least 1 potential match
 end
 
 function Board:initTiles(level)
@@ -16,7 +17,8 @@ function Board:initTiles(level)
 	for y = 1, 8 do
 		self.tiles[y] = {}
 		for x = 1, 8 do
-			self.tiles[y][x] = Tile(x, y, self.colors[math.random(#self.colors)], rand(6))
+			-- at level 1 only flat blocks will appear
+			self.tiles[y][x] = Tile(x, y, self.colors[math.random(#self.colors)], rand(level))
 		end
 	end
 end
@@ -104,7 +106,7 @@ function Board:fillGaps()
 				space = false
 				y = spaceY
 				spaceY = 0
-			elseif (not space) and (not tile) then
+			elseif (not space) and not tile then
 				space = true
 				if spaceY == 0 then
 					spaceY = y
@@ -117,7 +119,8 @@ function Board:fillGaps()
 		for y = 8, 1, -1 do
 			local tile = self.tiles[y][x]
 			if not tile then
-				tile = Tile(x, y, rand(#self.colors), rand(6))
+				-- at level 1 only flat blocks will appear
+				tile = Tile(x, y, rand(#self.colors), rand(self.level))
 				tile.py = -32
 				self.tiles[y][x] = tile
 				tweens[tile] = { py = (tile.gy - 1) * 32 }

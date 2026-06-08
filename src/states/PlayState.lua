@@ -6,7 +6,7 @@ local hasSelected = false
 local canInput = true
 function PlayState:init()
 	self.timer = require("lib.knife.timer")
-	self.timeLeft = 10
+	self.timeLeft = 60
 	self.timer.every(1, function()
 		self.timeLeft = self.timeLeft - 1
 	end)
@@ -85,8 +85,10 @@ function PlayState:update(dt)
 end
 
 function PlayState:calcMatches()
-	for i, match in ipairs(self.board.matches) do
-		self.score = self.score + #match * 50
+	for i=1,#self.board.matches do
+		for j = 1, #self.board.matches[i] do
+			self.score = self.score + BASE_TILE_SCORE + BASE_VARIETY_SCORE * self.board.matches[i][j].variety
+		end
 	end
 	self.board:removeMatches()
 	local tweens = self.board:fillGaps()
