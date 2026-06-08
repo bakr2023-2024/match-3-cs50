@@ -17,6 +17,9 @@ function love.load()
 		["play"] = function()
 			return PlayState()
 		end,
+		['gameOver'] = function()
+		return GameOverState()
+		end
 	})
 	gsm:change("start")
 	love.window.setMode(WW, WH, { fullscreen = false, vsync = true })
