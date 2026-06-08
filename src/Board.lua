@@ -13,6 +13,7 @@ end
 
 function Board:initTiles(level)
 	self.tiles = {}
+	self.matches = {}
 	self.colors = GetRandomColors()
 	for y = 1, 8 do
 		self.tiles[y] = {}
