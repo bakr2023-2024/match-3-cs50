@@ -9,15 +9,14 @@ end
 
 function Board:initTiles()
 	self.tiles = {}
-	for y = 1, 8 do
-		self.tiles[y] = {}
-		for x = 1, 8 do
-			self.tiles[y][x] = Tile(x, y, rand(18), rand(6))
+	repeat
+		for y = 1, 8 do
+			self.tiles[y] = {}
+			for x = 1, 8 do
+				self.tiles[y][x] = Tile(x, y, rand(18), rand(6))
+			end
 		end
-	end
-	while self:hasMatches() do
-		self:initTiles()
-	end
+	until not self:hasMatches()
 end
 
 function Board:hasMatches()
@@ -41,20 +40,20 @@ function Board:hasMatches()
 		end
 	end
 	for x = 1, 8 do
-		local matchTiles = 0
+		local matchTiles = 1
 		local currCol = self.tiles[1][x].color
 		for y = 2, 8 do
-			if currCol == self.tiles[y][x].color then
+			if self.tiles[y][x].color == currCol then
 				matchTiles = matchTiles + 1
 			else
 				if matchTiles >= 3 then
 					matches[#matches + 1] = {}
 					for ny = y - 1, y - matchTiles, -1 do
-						matches[#matches + 1][ny] = self.tiles[y][ny]
+						matches[#matches + 1] = self.tiles[ny][x]
 					end
 				end
-				matchTiles = 0
 				currCol = self.tiles[y][x].color
+				matchTiles = 1
 			end
 		end
 	end
