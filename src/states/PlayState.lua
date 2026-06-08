@@ -9,6 +9,9 @@ function PlayState:init()
 	self.timeLeft = 60
 	self.timer.every(1, function()
 		self.timeLeft = self.timeLeft - 1
+		if self.timeLeft <= 5 then
+			sounds["clock"]:play()
+		end
 	end)
 end
 
@@ -21,18 +24,26 @@ end
 
 function PlayState:update(dt)
 	if self.timeLeft <= 0 then
+		sounds["game-over"]:play()
+		self.timer.clear()
 		gsm:change("gameOver", { score = self.score })
 	end
 	if self.score >= self.scoreGoal then
+		sounds["next-level"]:play()
+		self.timer.clear()
 		gsm:change("beginGame", { level = self.level + 1, score = self.score })
 	end
 	if love.keyboard.active["up"] then
+		sounds["select"]:play()
 		highlightTy = highlightTy > 1 and highlightTy - 1 or 1
 	elseif love.keyboard.active["down"] then
+		sounds["select"]:play()
 		highlightTy = highlightTy < 8 and highlightTy + 1 or 8
 	elseif love.keyboard.active["left"] then
+		sounds["select"]:play()
 		highlightTx = highlightTx > 1 and highlightTx - 1 or 1
 	elseif love.keyboard.active["right"] then
+		sounds["select"]:play()
 		highlightTx = highlightTx < 8 and highlightTx + 1 or 8
 	end
 
@@ -49,6 +60,7 @@ function PlayState:update(dt)
 			selectTx, selectTy = highlightTx, highlightTy
 			local tile2 = self.board.tiles[selectTy][selectTx]
 			if abs(tile1.gx - tile2.gx) + abs(tile1.gy - tile2.gy) ~= 1 then
+				sounds["error"]:play()
 				selectTx, selectTy = 0, 0
 			else
 				-- swap
@@ -85,9 +97,37 @@ function PlayState:update(dt)
 end
 
 function PlayState:calcMatches()
-	for i=1,#self.board.matches do
-		for j = 1, #self.board.matches[i] do
-			self.score = self.score + BASE_TILE_SCORE + BASE_VARIETY_SCORE * self.board.matches[i][j].variety
+	for i,match in ipairs(self.board.matches) do
+		sounds["match"]:stop()
+		sounds["match"]:play()
+		local j = 1
+		local isShiny = false
+		local isHorz = false
+		-- if a shiny tile is found, find out if it was matched horizontally or vertically
+		while j <= #match do
+			if match[j].shiny then
+				isShiny = true
+				isHorz = math.abs(match[1].gx - match[2].gx) == 1
+				break
+			end
+			j = j + 1
+		end
+		-- if shiny, add all the tiles in row/column to the match array
+		if isShiny then
+			if isHorz then
+				for k = 1, 8 do
+					match[k] = self.board.tiles[match[1].gy][k]
+				end
+			else
+				for k = 1, 8 do
+					match[k] = self.board.tiles[k][match[1].gx]
+				end
+			end
+		end
+		for k=1,#match do
+			self.score = self.score + BASE_TILE_SCORE + BASE_VARIETY_SCORE * match[k].variety
+			-- 1 second added for each tile in a match
+			self.timeLeft = self.timeLeft + 1
 		end
 	end
 	self.board:removeMatches()

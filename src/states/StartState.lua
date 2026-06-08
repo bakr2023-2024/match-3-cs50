@@ -8,11 +8,10 @@ function StartState:init()
 	self.board = Board(HVW - 4 * 32, HVH - 4 * 32, 2)
 end
 
-function StartState:enter(params) end
-
 function StartState:update(dt)
 	if self.canInput then
 		if love.keyboard.active["up"] or love.keyboard.active["down"] then
+			sounds["select"]:play()
 			self.currOption = self.currOption == 1 and 2 or 1
 		elseif love.keyboard.active["enter"] or love.keyboard.active["return"] then
 			if self.currOption == 2 then

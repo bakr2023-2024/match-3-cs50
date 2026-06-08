@@ -18,7 +18,8 @@ function Board:initTiles(level)
 		self.tiles[y] = {}
 		for x = 1, 8 do
 			-- at level 1 only flat blocks will appear
-			self.tiles[y][x] = Tile(x, y, self.colors[math.random(#self.colors)], rand(level))
+			self.tiles[y][x] =
+				Tile(x, y, self.colors[math.random(#self.colors)], level == 1 and 1 or rand(6), rand() <= 0.05) -- 5% chance for a shiny block
 		end
 	end
 end
@@ -120,7 +121,7 @@ function Board:fillGaps()
 			local tile = self.tiles[y][x]
 			if not tile then
 				-- at level 1 only flat blocks will appear
-				tile = Tile(x, y, rand(#self.colors), rand(self.level))
+				tile = Tile(x, y, rand(#self.colors), self.level == 1 and 1 or rand(6), rand() <= 0.05) -- 5% chance for a shiny block
 				tile.py = -32
 				self.tiles[y][x] = tile
 				tweens[tile] = { py = (tile.gy - 1) * 32 }
