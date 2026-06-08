@@ -10,10 +10,11 @@ end
 function Board:initTiles()
 	self.tiles = {}
 	repeat
+		local arr = GetRandomColors()
 		for y = 1, 8 do
 			self.tiles[y] = {}
 			for x = 1, 8 do
-				self.tiles[y][x] = Tile(x, y, rand(18), rand(6))
+				self.tiles[y][x] = Tile(x, y, arr[math.random(#arr)], rand(6))
 			end
 		end
 	until not self:hasMatches()

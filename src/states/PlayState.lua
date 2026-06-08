@@ -11,7 +11,7 @@ function PlayState:enter(params)
 	self.level = params.level
 	self.score = params.score
 	self.board = params.board
-	self.scoreGoal = self.level * 1.25 * BASE_SCORE
+	self.scoreGoal = self.level * 1.25 * BASE_SCORE_GOAL
 end
 
 function PlayState:update(dt)
@@ -59,13 +59,11 @@ function PlayState:update(dt)
 end
 
 function PlayState:calcMatches()
-	local hasMatches = self.board:hasMatches()
-
-	if not hasMatches then
+	if self.board:hasMatches() then
+		return true
+	else
 		return false
 	end
-
-	return true
 end
 
 function PlayState:render()

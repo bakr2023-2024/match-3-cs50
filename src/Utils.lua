@@ -8,3 +8,20 @@ function GenerateQuads(atlas)
 	end
 	return quads
 end
+
+local rand = math.random
+function GetRandomColors()
+	local arr = {}
+	for i = 1, 18 do
+		arr[i] = i
+	end
+	for i = #arr, 2, -1 do
+		local r = rand(i)
+		arr[i], arr[r] = arr[r], arr[i]
+	end
+	local slice = {}
+	for i = 1, SUBSET do
+		slice[i] = arr[i]
+	end
+	return slice
+end

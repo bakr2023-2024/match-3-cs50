@@ -6,7 +6,10 @@ VW, VH = 512, 288
 HVW, HVH = VW / 2, VH / 2
 BACKGROUND_SCROLL = 80
 
-BASE_SCORE = 1000
+SUBSET = 8
+BASE_SCORE_GOAL = 1000
+BASE_TILE_SCORE = 50
+BASE_VARIETY_SCORE = 25
 
 require("src.Tile")
 require("src.Board")
