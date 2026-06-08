@@ -1,5 +1,6 @@
 PlayState = Class({ __includes = BaseState })
 local abs = math.abs
+local floor = math.floor
 local highlightTx, highlightTy = 1, 1
 local selectTx, selectTy = 0, 0
 local hasSelected = false
@@ -19,7 +20,7 @@ function PlayState:enter(params)
 	self.level = params.level
 	self.score = params.score
 	self.board = params.board
-	self.scoreGoal = self.level * 1.25 * BASE_SCORE_GOAL
+	self.scoreGoal = self.level * 2 * BASE_SCORE_GOAL
 end
 
 function PlayState:update(dt)
@@ -47,53 +48,68 @@ function PlayState:update(dt)
 		highlightTx = highlightTx < 8 and highlightTx + 1 or 8
 	end
 
-	if love.keyboard.active["enter"] or love.keyboard.active["return"] then
-		if not canInput then
-			return
-		end
+	if (love.keyboard.active["enter"] or love.keyboard.active["return"]) and canInput then
 		if not hasSelected then
 			hasSelected = true
 			selectTx, selectTy = highlightTx, highlightTy
 		else
-			hasSelected = false
-			local tile1 = self.board.tiles[selectTy][selectTx]
-			selectTx, selectTy = highlightTx, highlightTy
-			local tile2 = self.board.tiles[selectTy][selectTx]
-			if abs(tile1.gx - tile2.gx) + abs(tile1.gy - tile2.gy) ~= 1 then
-				sounds["error"]:play()
-				selectTx, selectTy = 0, 0
+			self:checkSwap()
+		end
+	-- added mouse support
+	elseif love.mouse.active[1] and canInput then
+		local mx, my = love.mouse.getPosition()
+		local gx, gy = push:toGame(mx, my)
+		if gx and gy then
+			sounds["select"]:play()
+			highlightTx, highlightTy = floor((gx - self.board.x) / 32) + 1, floor((gy - self.board.y) / 32) + 1
+			if not hasSelected then
+				hasSelected = true
+				selectTx, selectTy = highlightTx, highlightTy
 			else
-				-- swap
-				canInput = false
-				self.board:swap(tile1, tile2)
-				self.timer
-					.tween(0.1, {
-						[tile1] = { px = tile2.px, py = tile2.py },
-						[tile2] = { px = tile1.px, py = tile1.py },
-					})
-					:finish(function()
-						-- check for match
-						self.board.matches = self.board:getMatches()
-						if #self.board.matches > 0 then
-							self:calcMatches()
-							-- resets board if no potential matches found
-							while not self.board:hasPotentialMatch() do
-								self.board:initTiles(self.level)
-							end
-						else
-							-- if swapping didn't result in a match, swap again to revert change
-							self.board:swap(tile1, tile2)
-							self.timer.tween(0.1, {
-								[tile1] = { px = tile2.px, py = tile2.py },
-								[tile2] = { px = tile1.px, py = tile1.py },
-							})
-						end
-						canInput = true
-					end)
+				self:checkSwap()
 			end
 		end
 	end
 	self.timer.update(dt)
+end
+
+function PlayState:checkSwap()
+	hasSelected = false
+	local tile1 = self.board.tiles[selectTy][selectTx]
+	selectTx, selectTy = highlightTx, highlightTy
+	local tile2 = self.board.tiles[selectTy][selectTx]
+	if abs(tile1.gx - tile2.gx) + abs(tile1.gy - tile2.gy) ~= 1 then
+		sounds["error"]:play()
+		selectTx, selectTy = 0, 0
+	else
+		-- swap
+		canInput = false
+		self.board:swap(tile1, tile2)
+		self.timer
+			.tween(0.1, {
+				[tile1] = { px = tile2.px, py = tile2.py },
+				[tile2] = { px = tile1.px, py = tile1.py },
+			})
+			:finish(function()
+				-- check for match
+				self.board.matches = self.board:getMatches()
+				if #self.board.matches > 0 then
+					self:calcMatches()
+					-- resets board if no potential matches found
+					while not self.board:hasPotentialMatch() do
+						self.board:initTiles(self.level)
+					end
+				else
+					-- if swapping didn't result in a match, swap again to revert change
+					self.board:swap(tile1, tile2)
+					self.timer.tween(0.1, {
+						[tile1] = { px = tile2.px, py = tile2.py },
+						[tile2] = { px = tile1.px, py = tile1.py },
+					})
+				end
+				canInput = true
+			end)
+	end
 end
 
 function PlayState:calcMatches()

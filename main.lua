@@ -25,6 +25,8 @@ function love.load()
 	love.window.setMode(WW, WH, { fullscreen = false, vsync = true })
 	push:setupScreen(VW, VH, WW, WH)
 	love.keyboard.active = {}
+	love.mouse.active = {}
+
 end
 function love.update(dt)
 	backgroundX = backgroundX - BACKGROUND_SCROLL * dt
@@ -33,6 +35,7 @@ function love.update(dt)
 	end
 	gsm:update(dt)
 	love.keyboard.active = {}
+	love.mouse.active = {}
 end
 function love.keypressed(key)
 	if key == "escape" then
@@ -40,6 +43,9 @@ function love.keypressed(key)
 	else
 		love.keyboard.active[key] = true
 	end
+end
+function love.mousepressed(x, y, btn)
+	love.mouse.active[btn] = true
 end
 function love.draw()
 	push:start()
