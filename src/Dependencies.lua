@@ -6,6 +6,8 @@ VW, VH = 512, 288
 HVW, HVH = VW / 2, VH / 2
 BACKGROUND_SCROLL = 80
 
+BASE_SCORE = 1000
+
 require("src.Tile")
 require("src.Board")
 

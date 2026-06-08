@@ -19,7 +19,7 @@ function StartState:update(dt)
 			if self.currOption == 2 then
 				love.event.quit()
 			else
-				self.timer.tween(1, { [self] = { transAlpha = 1 } }):finish(function()
+				self.timer.tween(0.25, { [self] = { transAlpha = 1 } }):finish(function()
 					gsm:change("beginGame", { level = 1, score = 0 })
 				end)
 			end
