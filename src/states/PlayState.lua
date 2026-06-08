@@ -27,6 +27,9 @@ function PlayState:update(dt)
 	end
 
 	if love.keyboard.active["enter"] or love.keyboard.active["return"] then
+		if not canInput then
+			return
+		end
 		if not hasSelected then
 			hasSelected = true
 			selectTx, selectTy = highlightTx, highlightTy
@@ -39,6 +42,7 @@ function PlayState:update(dt)
 				selectTx, selectTy = 0, 0
 			else
 				-- swap
+				canInput = false
 				self.board:swap(tile1, tile2)
 				self.timer
 					.tween(0.1, {
@@ -46,22 +50,23 @@ function PlayState:update(dt)
 						[tile2] = { px = tile1.px, py = tile1.py },
 					})
 					:finish(function()
-						-- check for match
-						self.board.matches = self.board:getMatches()
-						if #self.board.matches > 0 then
-							self:calcMatches()
-							-- resets board if no potential matches found
-							while not self.board:hasPotentialMatch() do
-								self.board:initTiles(self.level)
-							end
-						else
-							-- if swapping didn't result in a match, swap again to revert change
-							self.board:swap(tile1, tile2)
-							self.timer.tween(0.1, {
-								[tile1] = { px = tile2.px, py = tile2.py },
-								[tile2] = { px = tile1.px, py = tile1.py },
-							})
+					-- check for match
+					self.board.matches = self.board:getMatches()
+					if #self.board.matches > 0 then
+						self:calcMatches()
+						-- resets board if no potential matches found
+						while not self.board:hasPotentialMatch() do
+							self.board:initTiles(self.level)
 						end
+					else
+						-- if swapping didn't result in a match, swap again to revert change
+						self.board:swap(tile1, tile2)
+						self.timer.tween(0.1, {
+							[tile1] = { px = tile2.px, py = tile2.py },
+							[tile2] = { px = tile1.px, py = tile1.py },
+						})
+					end
+					canInput = true
 					end)
 			end
 		end
