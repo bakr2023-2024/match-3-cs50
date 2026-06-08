@@ -35,21 +35,28 @@ function PlayState:update(dt)
 			local tile1 = self.board.tiles[selectTy][selectTx]
 			selectTx, selectTy = highlightTx, highlightTy
 			local tile2 = self.board.tiles[selectTy][selectTx]
-			if abs(tile1.gx - tile2.gx) + abs(tile1.gy - tile2.gy) == 1 then
-				-- swap tiles
-				self:swapTiles(tile1, tile2)
-				-- animate the swap by tweening
+			if abs(tile1.gx - tile2.gx) + abs(tile1.gy - tile2.gy) ~= 1 then
+				selectTx, selectTy = 0, 0
+			else
+				-- swap
+				self.board:swap(tile1, tile2)
 				self.timer
 					.tween(0.1, {
 						[tile1] = { px = tile2.px, py = tile2.py },
 						[tile2] = { px = tile1.px, py = tile1.py },
 					})
 					:finish(function()
-						-- if no match found, swap back from board POV and tiles POV
-						if not self:calcMatches() then
-							-- swap tiles again to revert change
-							self:swapTiles(tile1, tile2)
-							-- animate swapping back by tweening
+						-- check for match
+						self.board.matches = self.board:getMatches()
+						if #self.board.matches > 0 then
+							self:calcMatches()
+							-- resets board if no potential matches found
+							while not self.board:hasPotentialMatch() do
+								self.board:initTiles(self.level)
+							end
+						else
+							-- if swapping didn't result in a match, swap again to revert change
+							self.board:swap(tile1, tile2)
 							self.timer.tween(0.1, {
 								[tile1] = { px = tile2.px, py = tile2.py },
 								[tile2] = { px = tile1.px, py = tile1.py },
@@ -62,29 +69,18 @@ function PlayState:update(dt)
 	self.timer.update(dt)
 end
 
-function PlayState:swapTiles(tile1, tile2)
-	local tempGx, tempGy = tile1.gx, tile1.gy
-	-- swap gridX and gridY of both tiles (tiles POV)
-	tile1.gx, tile1.gy = tile2.gx, tile2.gy
-	tile2.gx, tile2.gy = tempGx, tempGy
-	-- swap both tiles' positions in board (board POV)
-	self.board.tiles[tile2.gy][tile2.gx], self.board.tiles[tile1.gy][tile1.gx] = tile2, tile1
-end
-
 function PlayState:calcMatches()
-	if self.board:hasMatches() then
-		for i, match in ipairs(self.board.matches) do
-			self.score = self.score + #match * 50
-		end
-		self.board:removeMatches()
-		local tweens = self.board:fillGaps()
-		self.timer.tween(0.25, tweens):finish(function()
-			self:calcMatches()
-		end)
-		return true
-	else
-		return false
+	for i, match in ipairs(self.board.matches) do
+		self.score = self.score + #match * 50
 	end
+	self.board:removeMatches()
+	local tweens = self.board:fillGaps()
+	self.timer.tween(0.25, tweens):finish(function()
+		self.board.matches = self.board:getMatches()
+		if #self.board.matches > 0 then
+			self:calcMatches()
+		end
+	end)
 end
 
 function PlayState:render()
@@ -114,6 +110,6 @@ function PlayState:render()
 			6
 		)
 	end
-	
+
 	love.graphics.setColor(1, 1, 1, 1)
 end

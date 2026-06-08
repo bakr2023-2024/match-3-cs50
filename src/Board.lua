@@ -1,27 +1,27 @@
 Board = Class()
 local rand = math.random
-function Board:init(x, y)
+function Board:init(x, y, level)
 	self.x = x
 	self.y = y
 	self.matches = {}
 	self.colors = {}
-	self:initTiles()
+	repeat
+		self:initTiles(level)
+	until #(self:getMatches()) == 0 and self:hasPotentialMatch()
 end
 
 function Board:initTiles(level)
 	self.tiles = {}
-	repeat
-		self.colors = GetRandomColors()
-		for y = 1, 8 do
-			self.tiles[y] = {}
-			for x = 1, 8 do
-				self.tiles[y][x] = Tile(x, y, self.colors[math.random(#self.colors)], rand(6))
-			end
+	self.colors = GetRandomColors()
+	for y = 1, 8 do
+		self.tiles[y] = {}
+		for x = 1, 8 do
+			self.tiles[y][x] = Tile(x, y, self.colors[math.random(#self.colors)], rand(6))
 		end
-	until not self:hasMatches()
+	end
 end
 
-function Board:hasMatches()
+function Board:getMatches()
 	local matches = {}
 	local matchTiles = 1
 	for y = 1, 8 do
@@ -76,8 +76,7 @@ function Board:hasMatches()
 			table.insert(matches, match)
 		end
 	end
-	self.matches = matches
-	return #matches > 0
+	return matches
 end
 
 function Board:removeMatches()
@@ -86,7 +85,7 @@ function Board:removeMatches()
 			self.tiles[tile.gy][tile.gx] = nil
 		end
 	end
-	self.matches = nil
+	self.matches = {}
 end
 
 function Board:fillGaps()
@@ -99,14 +98,17 @@ function Board:fillGaps()
 			local tile = self.tiles[y][x]
 			if space and tile then
 				self.tiles[spaceY][x] = tile
-				self.tiles[y][x] = nil
 				tile.gy = spaceY
-				tweens[tile] = { py = (spaceY - 1) * 32 }
+				self.tiles[y][x] = nil
+				tweens[tile] = { py = (tile.gy - 1) * 32 }
 				space = false
 				y = spaceY
-			elseif not space and not tile then
+				spaceY = 0
+			elseif (not space) and (not tile) then
 				space = true
-				spaceY = y
+				if spaceY == 0 then
+					spaceY = y
+				end
 			end
 			y = y - 1
 		end
@@ -118,13 +120,48 @@ function Board:fillGaps()
 				tile = Tile(x, y, rand(#self.colors), rand(6))
 				tile.py = -32
 				self.tiles[y][x] = tile
-				tweens[tile] = { py = (y - 1) * 32 }
+				tweens[tile] = { py = (tile.gy - 1) * 32 }
 			end
 		end
 	end
 	return tweens
 end
-
+-- swaps both tiles' gridX,gridY and their positions in board
+function Board:swap(tile1, tile2)
+	local tempGx, tempGy = tile1.gx, tile1.gy
+	-- swap gridX and gridY of both tiles (tiles POV)
+	tile1.gx, tile1.gy = tile2.gx, tile2.gy
+	tile2.gx, tile2.gy = tempGx, tempGy
+	-- swap both tiles' positions in board (board POV)
+	self.tiles[tile2.gy][tile2.gx], self.tiles[tile1.gy][tile1.gx] = tile2, tile1
+end
+-- swap each tile right and down and check for matches
+function Board:hasPotentialMatch()
+	for y = 1, 8 do
+		for x = 1, 8 do
+			local tile = self.tiles[y][x]
+			if x < 8 then
+				local tile2 = self.tiles[y][x + 1]
+				self:swap(tile, tile2)
+				local result = #(self:getMatches()) > 0
+				self:swap(tile, tile2)
+				if result then
+					return true
+				end
+			end
+			if y < 8 then
+				local tile2 = self.tiles[y + 1][x]
+				self:swap(tile, tile2)
+				local result = #(self:getMatches()) > 0
+				self:swap(tile, tile2)
+				if result then
+					return true
+				end
+			end
+		end
+	end
+	return false
+end
 function Board:render()
 	for y = 1, 8 do
 		for x = 1, 8 do
