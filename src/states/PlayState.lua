@@ -6,6 +6,10 @@ local hasSelected = false
 local canInput = true
 function PlayState:init()
 	self.timer = require("lib.knife.timer")
+	self.timeLeft = 10
+	self.timer.every(1, function()
+		self.timeLeft = self.timeLeft - 1
+	end)
 end
 
 function PlayState:enter(params)
@@ -16,6 +20,12 @@ function PlayState:enter(params)
 end
 
 function PlayState:update(dt)
+	if self.timeLeft <= 0 then
+		gsm:change("gameOver", { score = self.score })
+	end
+	if self.score >= self.scoreGoal then
+		gsm:change("beginGame", { level = self.level + 1, score = self.score })
+	end
 	if love.keyboard.active["up"] then
 		highlightTy = highlightTy > 1 and highlightTy - 1 or 1
 	elseif love.keyboard.active["down"] then
@@ -50,23 +60,23 @@ function PlayState:update(dt)
 						[tile2] = { px = tile1.px, py = tile1.py },
 					})
 					:finish(function()
-					-- check for match
-					self.board.matches = self.board:getMatches()
-					if #self.board.matches > 0 then
-						self:calcMatches()
-						-- resets board if no potential matches found
-						while not self.board:hasPotentialMatch() do
-							self.board:initTiles(self.level)
+						-- check for match
+						self.board.matches = self.board:getMatches()
+						if #self.board.matches > 0 then
+							self:calcMatches()
+							-- resets board if no potential matches found
+							while not self.board:hasPotentialMatch() do
+								self.board:initTiles(self.level)
+							end
+						else
+							-- if swapping didn't result in a match, swap again to revert change
+							self.board:swap(tile1, tile2)
+							self.timer.tween(0.1, {
+								[tile1] = { px = tile2.px, py = tile2.py },
+								[tile2] = { px = tile1.px, py = tile1.py },
+							})
 						end
-					else
-						-- if swapping didn't result in a match, swap again to revert change
-						self.board:swap(tile1, tile2)
-						self.timer.tween(0.1, {
-							[tile1] = { px = tile2.px, py = tile2.py },
-							[tile2] = { px = tile1.px, py = tile1.py },
-						})
-					end
-					canInput = true
+						canInput = true
 					end)
 			end
 		end
@@ -90,6 +100,15 @@ end
 
 function PlayState:render()
 	self.board:render()
+
+	love.graphics.setColor(0, 0, 0, 0.5)
+	love.graphics.setFont(fonts["medium"])
+	love.graphics.rectangle("fill", 16, 16, 182, 116, 4)
+	love.graphics.setColor(1, 1, 1, 1)
+	love.graphics.printf("Level: " .. tostring(self.level), 20, 24, 182, "center")
+	love.graphics.printf("Score: " .. tostring(self.score), 20, 52, 182, "center")
+	love.graphics.printf("Goal : " .. tostring(self.scoreGoal), 20, 80, 182, "center")
+	love.graphics.printf("Timer: " .. tostring(self.timeLeft), 20, 108, 182, "center")
 
 	love.graphics.setColor(1, 0, 0, 1)
 	love.graphics.setLineWidth(4)
